@@ -50,6 +50,9 @@ class MongoDbFunctions:
         - updateByMultipleField(fields, data, exact_match=True): Update documents by multiple fields.
         - deleteByField(field, value, exact_match=True): Delete documents by field and value.
         - deleteByMultipleField(fields, exact_match=True): Delete documents by multiple fields.
+        
+
+        
     """
     
     def __init__(self, host, port, username, password, dbname, collectionname):
