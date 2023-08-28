@@ -5,7 +5,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-class HTTP_util:
+class HttpFunctions:
    
    @staticmethod
    def httpRequest(method,url,payload=None,proxy=None,**parameters):
@@ -25,7 +25,7 @@ class HTTP_util:
       logger.debug("Sending GET request to URL: %s", url)
       
       if parameters:
-         parameters = HTTP_util.buildParameterQuery(**parameters)
+         parameters = HttpFunctions.buildParameterQuery(**parameters)
          url = url + parameters
       
       logger.debug("Request URL with parameters: %s", url)
@@ -86,4 +86,4 @@ class HTTP_util:
 # Example usage
 if __name__ == "__main__":
    logging.basicConfig(level=logging.DEBUG)  # Set the desired logging level
-   logger.debug(HTTP_util.getRequest("http://127.0.0.1:5000",name="John", age=25)[1])
+   logger.debug(HttpFunctions.getRequest("http://127.0.0.1:5000",name="John", age=25)[1])
