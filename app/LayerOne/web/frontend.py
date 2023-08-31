@@ -1,4 +1,4 @@
-from config import create_app
+from src import create_app
 # Create an instance of the Flask app
 
 
@@ -7,4 +7,4 @@ from config import create_app
 if __name__ == '__main__':
 
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=True,port=5001)

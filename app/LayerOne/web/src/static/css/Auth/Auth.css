@@ -1,0 +1,159 @@
+
+
+body {
+    font-family: 'Open Sans', sans-serif !important;
+    color: rgb(0, 0, 0, 0.9) !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* static/css/Auth/Auth.css */
+
+.auth {
+    width: 448px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border: 0.5px solid rgb(79, 79, 79) !important;
+    border-radius: 6px;
+    padding: 2.5em;
+}
+
+.auth h4 {
+    margin: 0;
+}
+
+.auth p {
+    margin: 0;
+}
+
+a {
+    margin-top: 0.3em;
+    text-align: left;
+    font-size: 12px;
+}
+
+
+
+/* static/style.css */
+
+.gmail_form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Center horizontally */
+    margin-top: 2em;
+}
+
+.pass_form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Center horizontally */
+    margin-top: 2em;
+}
+
+input {
+    border-radius: 6px !important;
+
+}
+
+/* static/style.css */
+
+.form-control-lg {
+    height: 50px;
+    /* Adjust the height value as needed */
+}
+
+/* static/style.css */
+
+.forgot-link {
+    margin-top: 0.3em;
+    font-size: 12px;
+    width: 100%;
+    text-align: left;
+}
+
+
+.div-link {
+    margin-top: 3em;
+    font-size: 12px;
+    width: 100%;
+    text-align: left;
+}
+
+.div-button {
+    margin-top: 3em;
+    font-size: 12px;
+    width: 100%;
+    text-align: right;
+}
+
+.mas_informacion {
+    color: #1B73E8;
+    font-weight: bold;
+}
+
+.bigform {
+    width: 100%;
+    margin: 0;
+}
+
+formalign {
+    text-align: right;
+}
+
+.subtitle {
+    margin-top: 0.7em !important;
+}
+
+
+.form-outline.pass_form,
+.form-outline.gmail_form {
+    height: 54px;
+    /* Ajusta la altura según tus necesidades */
+}
+
+.form-outline.pass_form label,
+.form-outline.gmail_form label {
+    top: 50%;
+    transform: translateY(15%);
+}
+
+
+/* Cambia los estilos del botón primario con una clase personalizada */
+.custom-btn-primary {
+    background-color: #1B73E8 !important; /* Cambia el color de fondo del botón primario */
+    box-shadow: none !important; /* Elimina la sombra del botón primario */
+}
+
+.custom-btn-primary:hover {
+    background-color: #1B73E8 !important; /* Cambia el color de fondo al pasar el mouse sobre el botón primario */
+}
+
+label {
+    font-size: 15px;
+}
+.home {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#home {
+    color: #1B73E8;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+
+.div-button {
+    margin-right: 20px; /* Ajusta este valor según sea necesario */
+}

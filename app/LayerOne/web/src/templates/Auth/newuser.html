@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Auth/Auth.css') }}">
+
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <!-- MDB -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.1/mdb.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap"
+        rel="stylesheet">
+</head>
+
+
+
+<body>
+    <div class="auth">
+        <h4>Crear cuenta</h4>
+        <p class="subtitle">Utiliza tu cuenta de m@il</p>
+        <form action="/newuser" method="POST" class="bigform">
+            <div class="form-outline gmail_form" id="correoid">
+                <input type="text" id="formControlLg" name="username" class="form-control form-control-lg" />
+                <label class="form-label" for="formControlLg">Correo electrónico o teléfono</label>
+            </div>
+            <div id="passinput" class="form-outline pass_form" style="display: none;">
+                <input type="password" id="passinput2" name="password" class="form-control form-control-lg" />
+                <label class="form-label" for="formControlLg">Contraseña</label>
+            </div>
+
+
+        
+            <div class="div-link">
+                <p>¿No es tu ordenador? Usa el modo Invitado para iniciar sesión de forma privada. <span
+                        class="mas_informacion">Más información</span>
+                </p>
+            </div>
+            <div class="home">
+                <a id="home" href="/">Home</a>
+                <div class="div-button">
+                    <div id="siguiente" type="text" class="btn btn-primary custom-btn-primary">Siguiente</div>
+
+                    <div id="login" style="display: none;">
+                        <button type="submit" class="btn btn-primary custom-btn-primary">Login</button>
+                    </div>
+
+                </div>
+            </div>
+
+        </form>
+    </div>
+    <!-- MDB -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.1/mdb.min.js"></script>
+    <!-- Custom -->
+    <script>
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Enfoca automáticamente el input "formControlLg" cuando se carga la página
+            document.getElementById("formControlLg").focus();
+        });
+        // JavaScript para controlar los estilos
+        document.getElementById("siguiente").addEventListener("click", function () {
+            document.getElementById("correoid").style.display = "none"; // Oculta el campo
+            document.getElementById("siguiente").style.display = "none"; // Oculta el campo
+            document.getElementById("login").style.display = "block"; // Muestra el botón de inicio de sesión
+            document.getElementById("passinput").style.display = "block"; // Muestra el botón
+            // Enfocar automáticamente el input "passinput"
+            document.getElementById("passinput2").focus();
+        });
+
+        // Captura el evento de pulsación de tecla en los campos de entrada
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && document.getElementById("siguiente").style.display != "none") {
+                event.preventDefault(); // Evita que el formulario se envíe por defecto
+                document.getElementById("siguiente").click(); // Simula el clic en el botón "Siguiente"
+            }
+        });
+    </script>
+
+</body>
+
+</html>
