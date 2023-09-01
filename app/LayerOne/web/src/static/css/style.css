@@ -1,0 +1,5 @@
+/* Cambia los estilos del botón primario con una clase personalizada */
+.btn-primary {
+    background-color: #1B73E8 !important; /* Cambia el color de fondo del botón primario */
+    box-shadow: none !important; /* Elimina la sombra del botón primario */
+}

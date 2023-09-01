@@ -1,7 +1,7 @@
 
 
 body {
-    font-family: 'Open Sans', sans-serif !important;
+    font-family: 'Product Sans', sans-serif!important;
     color: rgb(0, 0, 0, 0.9) !important;
     display: flex;
     justify-content: center;
@@ -20,13 +20,20 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
-    border: 0.5px solid rgb(79, 79, 79) !important;
+    border: 0.5px solid #BDBDBD !important;
     border-radius: 6px;
     padding: 2.5em;
 }
 
+@media (max-width: 550px) {
+    .auth {
+        border: none !important;
+        border-radius: 0;
+    }
+}
 .auth h4 {
     margin: 0;
+    font-size: 25px;
 }
 
 .auth p {

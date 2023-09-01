@@ -7,4 +7,7 @@ basicrouting = Blueprint('basicrouting', __name__)
 @basicrouting.route('/')
 @login_required
 def index():
+    
+    ## Build all the components in the page
+
     return render_template('index.html')
