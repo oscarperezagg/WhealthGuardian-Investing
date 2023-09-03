@@ -59,6 +59,10 @@ export default function LoginPage() {
     const { toast } = useToast()
     const router = useRouter()
 
+    const onHandleClick = () => {
+        router.push("/signup")
+    }
+
     // Función para manejar el envío del formulario
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -87,20 +91,21 @@ export default function LoginPage() {
             return
         }
 
-        if (res?.ok) return router.push("eu2/dashboard")
+        if (res?.ok) return router.push("eu/dashboard")
 
     };
 
     return (
         <div className="formulario">
             <Toaster />
-            <form onSubmit={handleSubmit}>
-                <Card className="w-[350px]">
-                    <CardHeader>
-                        <CardTitle>Sign in</CardTitle>
-                        <CardDescription>Sign in with your account.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+            <Card className="w-[350px]">
+                <CardHeader>
+                    <CardTitle>Sign in</CardTitle>
+                    <CardDescription>Sign in with your account.</CardDescription>
+                </CardHeader>
+                <form onSubmit={handleSubmit}>
+
+                    <CardContent className="grid gap-4">
 
                         <div className="grid w-full items-center gap-4">
                             <div className="flex flex-col space-y-1.5">
@@ -116,22 +121,28 @@ export default function LoginPage() {
 
                         </div>
 
-
+                        <Button type="submit" className="w-full">Sign in</Button>
 
                     </CardContent>
-                    <CardFooter className="justify-between space-x-2">
 
+                </form>
+                <CardFooter className="grid gap-4" >
 
+                <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-background px-2 text-muted-foreground">
+                                    Or continue with
+                                </span>
+                            </div>
+                        </div>
+                    <Button onClick={onHandleClick} id="signup" className="w-full" variant="secondary">Sign up</Button>
 
-                        <Link href="/signup" legacyBehavior passHref>
-                            <Button id="signup" variant="ghost">Sign up</Button>
-                        </Link>
+                </CardFooter >
 
-                        <Button type="submit" className="">Sign in</Button>
-                    </CardFooter>
-
-                </Card>
-            </form>
+            </Card>
         </div>
 
     )

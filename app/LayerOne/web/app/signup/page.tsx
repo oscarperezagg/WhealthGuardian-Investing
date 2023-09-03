@@ -50,12 +50,14 @@ import { Toaster } from "@/components/ui/toaster"
 import { FormEvent, useState } from "react"
 import { set } from "mongoose"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 
 
 
 export default function CardWithForm() {
     const { toast } = useToast()
+    const router = useRouter()
 
 
     // Función para manejar el envío del formulario
@@ -104,16 +106,22 @@ export default function CardWithForm() {
 
     };
 
+
+    const onHandleClick = () => {
+        router.push("/login")
+    }
+
     return (
         <div className="formulario">
             <Toaster />
-            <form onSubmit={handleSubmit}>
-                <Card className="w-[350px]">
-                    <CardHeader>
-                        <CardTitle>Create an account</CardTitle>
-                        <CardDescription>Create you account in less than one minute.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
+            <Card className="w-[350px]">
+                <CardHeader>
+                    <CardTitle>Create an account</CardTitle>
+                    <CardDescription>Create you account in less than one minute.</CardDescription>
+                </CardHeader>
+                <form onSubmit={handleSubmit}>
+
+                    <CardContent className="grid gap-4">
 
                         <div className="grid w-full items-center gap-4">
                             <div className="flex flex-col space-y-1.5">
@@ -132,21 +140,28 @@ export default function CardWithForm() {
                         </div>
 
 
-
-                    </CardContent>
-                    <CardFooter className="justify-between space-x-2">
-
-
-
-                        <Link href="/login" legacyBehavior passHref>
-                            <Button id="Login" variant="ghost">Login</Button>
-                        </Link>
-
                         <Button type="submit" className="">Create account</Button>
-                    </CardFooter>
+                    </CardContent>
 
-                </Card>
-            </form>
+                </form>
+
+                <CardFooter className="grid gap-4" >
+
+                    <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-background px-2 text-muted-foreground">
+                                Or continue with
+                            </span>
+                        </div>
+                    </div>
+                    <Button onClick={onHandleClick} id="signup" className="w-full" variant="secondary">Sign in</Button>
+
+                </CardFooter >
+
+            </Card>
         </div>
 
     )
