@@ -1,0 +1,29 @@
+/* styles.css */
+
+
+
+div {
+
+  }
+
+  
+.formulario {
+    max-width: 500px; /* Ancho máximo de 500px */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* O ajusta la altura que desees */
+    margin: 0 auto; /* Centrar horizontalmente */
+}
+
+
+.pepe {
+   
+    overflow: auto; /* Agregar barras de desplazamiento si el contenido supera el tamaño máximo */
+
+    align-items: center;
+    justify-content: center;
+    height: 100vh; /* O ajusta la altura que desees */
+
+}
