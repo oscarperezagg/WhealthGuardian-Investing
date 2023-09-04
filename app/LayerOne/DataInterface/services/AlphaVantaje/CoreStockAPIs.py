@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 
 
 class CoreStockAPIs:
-
     @staticmethod
     def time_series_intraday(**parameters):
         """
