@@ -7,6 +7,7 @@ from bson.objectid import ObjectId
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class MongoDbFunctions:
     """
     A utility class for interacting with MongoDB databases and collections.
@@ -50,13 +51,16 @@ class MongoDbFunctions:
         - updateByMultipleField(fields, data, exact_match=True): Update documents by multiple fields.
         - deleteByField(field, value, exact_match=True): Delete documents by field and value.
         - deleteByMultipleField(fields, exact_match=True): Delete documents by multiple fields.
-        
 
-        
+
+
     """
-    
+
     def __init__(self, host, port, username, password, dbname, collectionname):
-        self.client = MongoClient(host, port, username=username, password=password)
+        if not username or not password:
+            self.client = MongoClient(host, port)
+        else:
+            self.client = MongoClient(host, port, username=username, password=password)
         self.db = self.client[dbname]
         self.collection = self.db[collectionname]
 
@@ -130,7 +134,7 @@ class MongoDbFunctions:
         else:
             return self.collection.find_one(query)
 
-    def findByMultipleFields(self, fields,exact_match=True, get_all=False):
+    def findByMultipleFields(self, fields, exact_match=True, get_all=False):
         """
         Find documents in the collection based on multiple fields and their values.
 
@@ -183,7 +187,7 @@ class MongoDbFunctions:
         """
         query = {"_id": ObjectId(id)}
         self.collection.update_one(query, {"$set": data})
-        
+
     def updateByField(self, field, value, data, exact_match=True):
         """
         Update documents in the collection based on a field and value.
@@ -203,7 +207,6 @@ class MongoDbFunctions:
         else:
             self.collection.update_many(query, {"$set": data})
 
-
     def updateByMultipleField(self, field, value, data, exact_match=True):
         """
         Update documents in the collection based on a field and value.
@@ -220,12 +223,12 @@ class MongoDbFunctions:
                 query[field] = value
             else:
                 query[field] = {"$regex": value, "$options": "i"}
-                
+
         if exact_match:
             self.collection.update_one(query, {"$set": data})
         else:
             self.collection.update_many(query, {"$set": data})
-            
+
     def deleteByField(self, field, value, exact_match=True):
         """
         Delete documents in the collection based on a field and value.
@@ -243,7 +246,7 @@ class MongoDbFunctions:
             self.collection.delete_one(query)
         else:
             self.collection.delete_many(query)
-        
+
     def deleteByMultipleField(self, field, value, exact_match=True):
         """
         Delete documents in the collection based on multiple fields and their values.
@@ -260,7 +263,6 @@ class MongoDbFunctions:
             self.collection.delete_one(query)
         else:
             self.collection.delete_many(query)
-
 
 
 class MongoDbUtil:
@@ -288,7 +290,7 @@ if __name__ == "__main__":
         "Find one element in the collection with {'nombre': 'Juan'} with exact match"
     )
     element = mongo.findByField("nombre", "Juan")
-    logger.info(element["nombre"]if element else "No element found")
+    logger.info(element["nombre"] if element else "No element found")
 
     logger.info(
         "Find one element in the collection with {'nombre': 'Juan'} with no exact match"
@@ -302,49 +304,48 @@ if __name__ == "__main__":
     element = mongo.findByField("nombre", "Juan", False, True)
     logger.info(len(element) if element else "No element found")
 
-    logger.info("Find one document where nombre is Juan Pérez and ciudad contains Madrid")
-    fields = {
-        "nombre": "Juan Pérez",
-        "ciudad": "Madrid"
-    }
+    logger.info(
+        "Find one document where nombre is Juan Pérez and ciudad contains Madrid"
+    )
+    fields = {"nombre": "Juan Pérez", "ciudad": "Madrid"}
     element = mongo.findByMultipleFields(fields)
-    logger.info(f"{element['nombre']} | {element['ciudad']}" if element else "No element found")
-    
+    logger.info(
+        f"{element['nombre']} | {element['ciudad']}" if element else "No element found"
+    )
+
     logger.info("Find one document where nombre is Juan and ciudad contains Madrid")
-    fields = {
-        "nombre": "Juan Pérez",
-        "ciudad": "Madrid"
-    }
-    element = mongo.findByMultipleFields(fields,exact_match=False)
-    logger.info(f"{element['nombre']} | {element['ciudad']}" if element else "No element found")
+    fields = {"nombre": "Juan Pérez", "ciudad": "Madrid"}
+    element = mongo.findByMultipleFields(fields, exact_match=False)
+    logger.info(
+        f"{element['nombre']} | {element['ciudad']}" if element else "No element found"
+    )
 
     logger.info("Find documents where nombre is Juan and ciudad contains Madrid")
-    fields = {
-        "nombre": "Juan",
-        "ciudad": "Madrid"
-    }
-    elements = mongo.findByMultipleFields(fields,exact_match=False,get_all=True)
+    fields = {"nombre": "Juan", "ciudad": "Madrid"}
+    elements = mongo.findByMultipleFields(fields, exact_match=False, get_all=True)
     for element in elements:
-        logger.info(f"{element['nombre']} | {element['ciudad']}" if element else "No element found")
+        logger.info(
+            f"{element['nombre']} | {element['ciudad']}"
+            if element
+            else "No element found"
+        )
 
     logger.info("Update one document where nombre is Juan Pérez")
     mongo.updateByField("nombre", "Juan Pérez", {"ciudad": "Barcelona"})
     mongo.updateByField("nombre", "Juan Pérez", {"ciudad": "Madrid"})
-    
+
     logger.info("Update documents where nombre contains Juan")
-    mongo.updateByField("nombre", "Juan", {"ciudad": "Barcelona"},exact_match=False)
-    mongo.updateByField("nombre", "Juan", {"ciudad": "Madrid"},exact_match=False)
-    
+    mongo.updateByField("nombre", "Juan", {"ciudad": "Barcelona"}, exact_match=False)
+    mongo.updateByField("nombre", "Juan", {"ciudad": "Madrid"}, exact_match=False)
+
     logger.info("Delete documents where nombre contains Luis Rodríguez")
     input("Press enter to continue...")
-    mongo.deleteByField("nombre", "Luis",exact_match=False)
-    
+    mongo.deleteByField("nombre", "Luis", exact_match=False)
+
     logger.info("Delete documents where nombre contains Juan")
     input("Press enter to continue...")
-    mongo.deleteByField("nombre", "Juan",exact_match=False)
-    
-    
-    
+    mongo.deleteByField("nombre", "Juan", exact_match=False)
+
     # Find all the elements in the collection
     # element = mongo.find_all()
     # for i in element:
