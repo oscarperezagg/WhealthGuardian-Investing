@@ -5,14 +5,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class AlphaVantajeBase:
+class TwelveDataBase:
     
-    url = "https://www.alphavantage.co/query"
+    url = "https://api.twelvedata.com"
     
     
     @staticmethod
     def api_request(requiered_parameters, optional_parameters,**parameters):
         required = requiered_parameters
+        required.append("apikey")
+        
         optional = optional_parameters
         
         # Check for missing required parameters
@@ -28,13 +30,11 @@ class AlphaVantajeBase:
                 return "Invalid parameter", None
             
         final_parameters = []
-        final_parameters.append(f"?function={parameters['function']}")
         
         for parameter_name in parameters:
-            if parameter_name != "function":
-                final_parameters.append(f"{parameter_name}={parameters[parameter_name]}")
+            final_parameters.append(f"{parameter_name}={parameters[parameter_name]}")
             
-        final_url = AlphaVantajeBase.url + "&".join(final_parameters)
+        final_url = TwelveDataBase.url + "?" + "&".join(final_parameters)
         print(final_url)
 
         return HttpFunctions.httpRequest("GET",final_url)
