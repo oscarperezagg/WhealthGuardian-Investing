@@ -2,9 +2,13 @@
 import logging
 from pymongo import MongoClient
 from bson.objectid import ObjectId
+from gridfs import GridFS
+import sys
+import bson
+
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -56,13 +60,15 @@ class MongoDbFunctions:
 
     """
 
-    def __init__(self, host, port, username, password, dbname, collectionname):
+    def __init__(self, host, port, username, password, dbname, collectionname=None):
         if not username or not password:
-            self.client = MongoClient(host, port)
+            self.client = MongoClient(host, int(port))
         else:
             self.client = MongoClient(host, port, username=username, password=password)
         self.db = self.client[dbname]
-        self.collection = self.db[collectionname]
+        self.fs = GridFS(self.db)
+        if collectionname:
+            self.collection = self.db[collectionname]
 
     def changeCollection(self, collectionname):
         """
@@ -72,22 +78,35 @@ class MongoDbFunctions:
             collectionname (str): The name of the new collection.
         """
         self.collection = self.db[collectionname]
+        logger.info(f"Changed collection to {collectionname}")
 
     def close(self):
         """
         Close the connection to the MongoDB client.
         """
         self.client.close()
+        logger.info("Database connection closed")
 
-    def insert(self, data):
+
+    def insert(self, data,name="default"):
         """
         Insert a single document into the collection.
 
         Args:
             data (dict): The document to be inserted.
         """
-        self.collection.insert_one(data)
+        
+        # Check if data size is greater than 16 MB (16777216 bytes)
+        data = bson.BSON.encode(data)
+        data_size = len(data)
+        if data_size > 16000000:
+            logger.info(f"Data size is {data_size} bytes. Inserting with GridFS.")
+            self.insertWithFS(data, name)
+        else:
+            self.collection.insert_one(data)
+            logger.info("Inserted a document into the regular collection.")
 
+    
     def insert_many(self, data):
         """
         Insert multiple documents into the collection.
@@ -97,6 +116,12 @@ class MongoDbFunctions:
         """
         self.collection.insert_many(data)
 
+
+    def insertWithFS(self, data, name):
+        file_id = self.fs.put(str(data).encode(), filename=f"{name}.json")
+        logger.info(f"Inserted a large document with file_id: {file_id} into GridFS.")
+
+    
     def findById(self, id):
         """
         Find a document in the collection by its ObjectId.
@@ -263,6 +288,20 @@ class MongoDbFunctions:
             self.collection.delete_one(query)
         else:
             self.collection.delete_many(query)
+
+    def deleteWithFS(self, filename):
+        # Busca el archivo por nombre en GridFS
+        file_info = self.fs.find_one({"filename": filename})
+
+        if file_info:
+            # Obtiene el ID del archivo
+
+            # Elimina el archivo y sus fragmentos correspondientes
+            self.fs.delete(file_info._id)
+            logger.info(f"El archivo '{filename}' ha sido eliminado de GridFS.")
+        else:
+            logger.info(f"No se encontró el archivo '{filename}' en GridFS.")
+
 
 
 class MongoDbUtil:
