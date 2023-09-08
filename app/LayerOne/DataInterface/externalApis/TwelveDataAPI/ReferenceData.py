@@ -2,7 +2,7 @@ import logging
 from .TwelveDataBase import TwelveDataBase
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -63,6 +63,8 @@ class ReferenceData:
         Example Downloadable CSV:
         https://api.twelvedata.com/stocks?format=CSV
         """
+        endpoint = "/stocks"
+
         # Your function code here
         optional = [
             "symbol",
@@ -76,7 +78,7 @@ class ReferenceData:
             "include_delisted",
         ]
 
-        return TwelveDataBase.api_request([], optional, **parameters)
+        return TwelveDataBase.api_request(endpoint, [], optional, **parameters)
 
     @staticmethod
     def forex_pairs_list(**parameters):
@@ -119,10 +121,11 @@ class ReferenceData:
         Example Downloadable CSV:
         https://api.twelvedata.com/forex_pairs?format=CSV
         """
+        endpoint = "/forex_pairs"
         # Your function code here
         optional = ["symbol", "currency_base", "currency_quote", "format", "delimiter"]
 
-        return TwelveDataBase.api_request([], optional, **parameters)
+        return TwelveDataBase.api_request(endpoint, [], optional, **parameters)
 
     @staticmethod
     def cryptocurrencies_list(**parameters):
@@ -168,6 +171,7 @@ class ReferenceData:
         Example Downloadable CSV:
         https://api.twelvedata.com/cryptocurrencies?format=CSV
         """
+        endpoint = "/cryptocurrencies"
         # Your function code here
         optional = [
             "symbol",
@@ -178,7 +182,7 @@ class ReferenceData:
             "delimiter",
         ]
 
-        return TwelveDataBase.api_request([], optional, **parameters)
+        return TwelveDataBase.api_request(endpoint, [], optional, **parameters)
 
     @staticmethod
     def etf_list(**parameters):
@@ -230,6 +234,9 @@ class ReferenceData:
         Example Downloadable CSV:
         https://api.twelvedata.com/etf?format=CSV
         """
+
+        endpoint = "/etf"
+
         # Your function code here
         optional = [
             "symbol",
@@ -242,7 +249,7 @@ class ReferenceData:
             "include_delisted",
         ]
 
-        return TwelveDataBase.api_request([], optional, **parameters)
+        return TwelveDataBase.api_request(endpoint, [], optional, **parameters)
 
     @staticmethod
     def exchanges(**parameters):
@@ -294,6 +301,9 @@ class ReferenceData:
         Example Downloadable CSV:
         https://api.twelvedata.com/exchanges?format=CSV
         """
+
+        endpoint = "/exchanges"
+
         # Your function code here
         optional = [
             "type",
@@ -305,7 +315,7 @@ class ReferenceData:
             "show_plan",
         ]
 
-        return TwelveDataBase.api_request([], optional, **parameters)
+        return TwelveDataBase.api_request(endpoint, [], optional, **parameters)
 
     @staticmethod
     def cryptocurrency_exchanges(**parameters):
@@ -336,10 +346,13 @@ class ReferenceData:
         Example Downloadable CSV:
         https://api.twelvedata.com/cryptocurrency_exchanges?format=CSV
         """
+
+        endpoint = "/cryptocurrency_exchanges"
+
         # Your function code here
         optional = ["format", "delimiter"]
 
-        return TwelveDataBase.api_request([], optional, **parameters)
+        return TwelveDataBase.api_request(endpoint, [], optional, **parameters)
 
     @staticmethod
     def symbol_search(**parameters):
@@ -373,11 +386,14 @@ class ReferenceData:
         Example JSON Request with show_plan:
         https://api.twelvedata.com/symbol_search?symbol=RY&show_plan=true
         """
+
+        endpoint = "/symbol_search"
+
         # Your function code here
         required = ["symbol"]
         optional = ["outputsize", "show_plan"]
 
-        return TwelveDataBase.api_request(required, optional, **parameters)
+        return TwelveDataBase.api_request(endpoint, required, optional, **parameters)
 
     @staticmethod
     def earliest_timestamp(**parameters):
@@ -405,8 +421,58 @@ class ReferenceData:
         Example JSON Request:
         https://api.twelvedata.com/earliest_timestamp?symbol=AAPL&interval=1day&apikey=demo
         """
+
+        endpoint = "/earliest_timestamp"
+
         # Your function code here
         required = ["symbol", "interval"]
-        optional = ["exchange", "mic_code", "apikey", "timezone"]
+        optional = ["exchange", "mic_code", "timezone"]
 
-        return TwelveDataBase.api_request(required, optional, **parameters)
+        return TwelveDataBase.api_request(endpoint, required, optional, **parameters)
+
+    @staticmethod
+    def get_indices(**parameters):
+        """
+        Get a list of indices available at Twelve Data API.
+
+        Parameters:
+        :param parameters: A dictionary containing API parameters.
+        :type parameters: dict
+
+        Returns:
+        :return: API response data.
+        :rtype: list
+
+        API Parameters (all optional):
+        - symbol: Filter by symbol (e.g., "IXIC").
+        - exchange: Filter by exchange name or mic code (e.g., "NASDAQ").
+        - mic_code: Filter by market identifier code (MIC) under ISO 10383 standard.
+        - country: Filter by country name or alpha code.
+        - format: Value can be "CSV" or "JSON"; Default is JSON.
+        - delimiter: Specify the delimiter used when downloading the CSV file; Default is semicolon ";".
+        - show_plan: Adds info on which plan the symbol is available; Boolean; Default is false.
+        - include_delisted: Include delisted identifiers; Boolean; Default is false.
+
+        Example JSON Request:
+        https://api.twelvedata.com/indices?symbol=IXIC&format=JSON
+
+        Example CSV Request:
+        https://api.twelvedata.com/indices?format=CSV
+        """
+
+        endpoint = "/indices"
+
+        # Define the optional parameters
+        optional = [
+            "symbol",
+            "exchange",
+            "mic_code",
+            "country",
+            "format",
+            "delimiter",
+            "show_plan",
+            "include_delisted",
+        ]
+
+        # Make the API request to Twelve Data
+        return TwelveDataBase.api_request(endpoint, [], optional, **parameters)

@@ -2,7 +2,7 @@ import logging
 from .TwelveDataBase import TwelveDataBase
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -54,7 +54,7 @@ class CoreData:
         https://api.twelvedata.com/time_series?symbol=BTC/USD&interval=5min&format=CSV&apikey=demo
         """
         # Parámetros requeridos
-        required = ["symbol", "interval"]
+        required = ["apikey","symbol", "interval"]
 
         # Parámetros opcionales
         optional = [
@@ -124,7 +124,7 @@ class CoreData:
         https://api.twelvedata.com/exchange_rate?symbol=EUR/USD&format=CSV&apikey=demo
         """
         # Your function code here
-        required = ["symbol", "apikey"]
+        required = ["apikey","symbol", "apikey"]
 
         # Lista de parámetros opcionales
         optional = ["date", "format", "delimiter"]
@@ -182,7 +182,7 @@ class CoreData:
         https://api.twelvedata.com/currency_conversion?symbol=EUR/USD&amount=15&format=CSV&apikey=demo
         """
         # Your function code here
-        required = ["symbol", "amount", "apikey"]
+        required = ["apikey","symbol", "amount", "apikey"]
 
         # Lista de parámetros opcionales
         optional = ["date", "format", "delimiter"]
@@ -263,7 +263,7 @@ class CoreData:
         https://api.twelvedata.com/quote?symbol=IXIC&type=Index&interval=5min&format=CSV&apikey=demo
         """
         # Your function code here
-        required = ["symbol", "apikey"]
+        required = ["apikey","symbol", "apikey"]
 
         # Lista de parámetros opcionales
         optional = [
@@ -340,7 +340,7 @@ class CoreData:
         https://api.twelvedata.com/price?symbol=USD/JPY&format=CSV&apikey=demo
         """
         # Your function code here
-        required = ["symbol", "apikey"]
+        required = ["apikey","symbol", "apikey"]
 
         # Lista de parámetros opcionales
         optional = [
@@ -405,7 +405,7 @@ class CoreData:
         https://api.twelvedata.com/eod?symbol=TRP&country=Canada&apikey=demo
         """
         # Your function code here
-        required = ["symbol", "apikey"]
+        required = ["apikey","symbol", "apikey"]
 
         # Lista de parámetros opcionales
         optional = ["exchange", "mic_code", "country", "type", "prepost", "dp"]

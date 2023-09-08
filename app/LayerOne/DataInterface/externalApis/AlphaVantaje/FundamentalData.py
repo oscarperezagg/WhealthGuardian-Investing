@@ -2,7 +2,7 @@ import logging
 from .AlphaVantajeBase import AlphaVantajeBase
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
