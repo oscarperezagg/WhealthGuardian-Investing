@@ -36,41 +36,41 @@ class HttpFunctions:
          response = requests.post(url, params=payload, proxies=proxy)
       else:
          logger.error("Invalid HTTP method")
-         return "Invalid HTTP method", None
+         return  (False, "Invalid HTTP method")
       
       if response.status_code == 200:
          logger.info("Request successful. Status code: %d", response.status_code)
-         return "Response data:", response
+         return (True, response)
       elif response.status_code == 201:
          logger.info("Request successful. Status code: %d", response.status_code)
-         return "Response data:", response
+         return (True, response)
       elif response.status_code == 204:
          logger.info("Request successful. Status code: %d", response.status_code)
-         return "Response data is empty", response
+         return (True, response)
       elif response.status_code == 301:
          logger.warning("Resource moved permanently. Status code: %d", response.status_code)
-         return "Resource moved permanently", response
+         return (False, response)
       elif response.status_code == 302:
          logger.warning("Resource found, temporary redirection. Status code: %d", response.status_code)
-         return "Resource found, temporary redirection", response
+         return (False, response)
       elif response.status_code == 400:
          logger.error("Bad request. Status code: %d", response.status_code)
-         return "Bad request", response
+         return (False, response)
       elif response.status_code == 401:
          logger.error("Unauthorized access. Status code: %d", response.status_code)
-         return "Unauthorized access", response
+         return (False, response)
       elif response.status_code == 403:
          logger.error("Access forbidden. Status code: %d", response.status_code)
-         return "Access forbidden", response
+         return (False, response)
       elif response.status_code == 404:
          logger.error("Resource not found. Status code: %d", response.status_code)
-         return "Resource not found", response
+         return (False, response)
       elif response.status_code == 500:
          logger.error("Internal server error. Status code: %d", response.status_code)
-         return "Internal server error", response
+         return (False, response)
       else:
          logger.error("Unknown error. Status code: %d", response.status_code)
-         return "Error:", response
+         return (False, response)
 
    @staticmethod
    def buildParameterQuery(**kwargs):

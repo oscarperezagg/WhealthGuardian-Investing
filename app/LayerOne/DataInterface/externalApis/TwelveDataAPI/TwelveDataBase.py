@@ -2,7 +2,6 @@ import logging
 from util import HttpFunctions
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -18,13 +17,13 @@ class TwelveDataBase:
         for required_parameter in required:
             if required_parameter not in parameters:
                 logger.error("Missing required parameter: %s", required_parameter)
-                return "Missing required parameter", None
+                return (False,"Missing required parameter")
 
         # Check for invalid parameters
         for input_parameter in parameters:
             if input_parameter not in required and input_parameter not in optional:
                 logger.error("Invalid parameter: %s", input_parameter)
-                return "Invalid parameter", None
+                return  (False,"Invalid parameter")
 
         final_parameters = []
 

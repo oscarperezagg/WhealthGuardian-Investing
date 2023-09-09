@@ -2,7 +2,6 @@ import logging
 from .TwelveDataBase import TwelveDataBase
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -425,7 +424,7 @@ class ReferenceData:
         endpoint = "/earliest_timestamp"
 
         # Your function code here
-        required = ["symbol", "interval"]
+        required = ["symbol", "interval","apikey"]
         optional = ["exchange", "mic_code", "timezone"]
 
         return TwelveDataBase.api_request(endpoint, required, optional, **parameters)

@@ -1,6 +1,7 @@
 # Import the required libraries
 import logging
 from pymongo import MongoClient
+import pymongo
 from bson.objectid import ObjectId
 from gridfs import GridFS
 import sys
@@ -8,7 +9,6 @@ import bson
 
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -87,18 +87,17 @@ class MongoDbFunctions:
         self.client.close()
         logger.info("Database connection closed")
 
-
-    def insert(self, data,name="default"):
+    def insert(self, data, name="default"):
         """
         Insert a single document into the collection.
 
         Args:
             data (dict): The document to be inserted.
         """
-        
+
         # Check if data size is greater than 16 MB (16777216 bytes)
-        data = bson.BSON.encode(data)
-        data_size = len(data)
+        temporalData = bson.BSON.encode(data)
+        data_size = len(temporalData)
         if data_size > 16000000:
             logger.info(f"Data size is {data_size} bytes. Inserting with GridFS.")
             self.insertWithFS(data, name)
@@ -106,7 +105,6 @@ class MongoDbFunctions:
             self.collection.insert_one(data)
             logger.info("Inserted a document into the regular collection.")
 
-    
     def insert_many(self, data):
         """
         Insert multiple documents into the collection.
@@ -116,12 +114,10 @@ class MongoDbFunctions:
         """
         self.collection.insert_many(data)
 
-
     def insertWithFS(self, data, name):
         file_id = self.fs.put(str(data).encode(), filename=f"{name}.json")
         logger.info(f"Inserted a large document with file_id: {file_id} into GridFS.")
 
-    
     def findById(self, id):
         """
         Find a document in the collection by its ObjectId.
@@ -134,7 +130,16 @@ class MongoDbFunctions:
         """
         return self.collection.find_one(ObjectId(id))
 
-    def findByField(self, field, value, exact_match=True, get_all=False):
+    def findByField(
+        self,
+        field,
+        value,
+        exact_match=True,
+        get_all=False,
+        sort=False,
+        sortField=None,
+        asc=True,
+    ):
         """
         Find documents in the collection based on a field and value.
 
@@ -155,8 +160,18 @@ class MongoDbFunctions:
             query = {field: {"$regex": value, "$options": "i"}}
 
         if get_all:
+            if sort:
+                data = self.collection.find(query).sort(
+                    sortField, pymongo.ASCENDING if asc else pymongo.DESCENDING
+                )
+                return list(data)
             return list(self.collection.find(query))
         else:
+            if sort:
+                data = self.collection.find_one(query).sort(
+                    sortField, pymongo.ASCENDING if asc else pymongo.DESCENDING
+                )
+                return data
             return self.collection.find_one(query)
 
     def findByMultipleFields(self, fields, exact_match=True, get_all=False):
@@ -301,7 +316,6 @@ class MongoDbFunctions:
             logger.info(f"El archivo '{filename}' ha sido eliminado de GridFS.")
         else:
             logger.info(f"No se encontró el archivo '{filename}' en GridFS.")
-
 
 
 class MongoDbUtil:

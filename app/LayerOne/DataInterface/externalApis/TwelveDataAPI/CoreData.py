@@ -2,7 +2,6 @@ import logging
 from .TwelveDataBase import TwelveDataBase
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -53,6 +52,8 @@ class CoreData:
         Ejemplo de solicitud CSV descargable:
         https://api.twelvedata.com/time_series?symbol=BTC/USD&interval=5min&format=CSV&apikey=demo
         """
+        endpoint = "/time_series"
+        
         # Parámetros requeridos
         required = ["apikey","symbol", "interval"]
 
@@ -75,7 +76,7 @@ class CoreData:
             "previous_close",
         ]
 
-        return TwelveDataBase.api_request(required, optional, **parameters)
+        return TwelveDataBase.api_request(endpoint,required, optional, **parameters)
 
     @staticmethod
     def exchange_rate(**parameters):

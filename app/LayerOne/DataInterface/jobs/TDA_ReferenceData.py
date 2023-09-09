@@ -4,7 +4,6 @@ from secret import DATABASE
 import logging
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 

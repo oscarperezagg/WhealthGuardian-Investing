@@ -2,7 +2,6 @@ import logging
 from util import HttpFunctions
 
 # Configure the logger
-logging.basicConfig(level=logging.INFO, format="|     %(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
