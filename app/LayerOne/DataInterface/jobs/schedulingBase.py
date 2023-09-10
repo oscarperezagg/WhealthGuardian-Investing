@@ -1,4 +1,5 @@
 
+# Scheduling cada x minutos para sincronizar las llamadas realizar a las APIs
 
 # Scheduling para limpiar las configuración de las APIs
 # Es decir poner a cero las variales de llamadas dirias y minutos

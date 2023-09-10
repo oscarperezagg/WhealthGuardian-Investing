@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
-import {connect} from '@/lib/mongodb'
+import { connect } from '@/lib/mongodb'
 import User from '@/models/user'
 import { th } from "date-fns/locale";
 import bcrypt from 'bcryptjs'
@@ -16,22 +16,18 @@ const handler = NextAuth({
             // You can pass any HTML attribute to the <input> tag through the object.
             credentials: {
                 email: { label: "Email", type: "email", placeholder: "m@example.com" },
-                password: { label: "Password", type: "password", placeholder: "********" }
+                password: { label: "Password", type: "password", placeholder: "********" },
             },
             async authorize(credentials, req) {
                 await connect()
-                console.log(credentials)
 
-                const userFound = await User.findOne({ email: credentials?.email }).select('+password')
-                console.log(userFound)
+                const userFound = await User.findOne({ email: credentials?.email }).select('+password +fullname');
                 if (!userFound) throw new Error('Invalid credentials')
 
-                const passwordMatch =await bcrypt.compare(credentials!.password, userFound.password)
+                const passwordMatch = await bcrypt.compare(credentials!.password, userFound.password)
 
                 if (!passwordMatch) throw new Error('Invalid credentials')
-
-                console.log(userFound)
-
+                // Cambiar la propiedad fullname a name antes de devolverla
                 return userFound
             }
         })
@@ -50,7 +46,7 @@ const handler = NextAuth({
         signIn: '/login',
         newUser: '/signup',
     }
-    
+
 })
 
 
