@@ -1,13 +1,14 @@
+from datetime import datetime, timedelta
 import time
 from externalApis import CoreData
 from externalApis import ReferenceData
 from util import MongoDbFunctions
 from secret import TWELVE_DATA_API_KEY
 from secret import DATABASE
-import logging
+from logging_config import logger
+from requests import Response
 
 # Configure the logger
-logger = logging.getLogger(__name__)
 
 
 class TDA_CoreData:
@@ -18,15 +19,15 @@ class TDA_CoreData:
     """
 
     @staticmethod
-    def downloadStocks():
+    def downloadAsset():
         """
-        Esta función descarga
+        Esta función descarga activos de cualquier tipo
 
         :return: Un diccionario con los datos descargados.
         """
         conn = None
         try:
-            # Obtener todos los registros de descarga de stocks
+            # Obtener todos los registros de descarga del activo seleccionado
             conn = MongoDbFunctions(
                 DATABASE["host"],
                 DATABASE["port"],
@@ -36,28 +37,40 @@ class TDA_CoreData:
                 "DownloadRegistry",
             )
 
-            logger.info("Descargando registros de stock")
-            DownloadRegistries = conn.findByField(
-                "type", "stocks", get_all=True, sort=True, sortField="priority"
-            )
+            logger.info(f"Descargando registros")
+            DownloadRegistries = conn.findAll(sort=True, sortField="priority")
 
             # Más lógica de descarga aquí...
             for registry in DownloadRegistries:
-                # {'_id': ObjectId('64fc82fb33f2da9a8d8eaecf'), 'timespan': '1month', 'type': 'stocks', 'descargas_pendientes': [], 'priority': 0}
                 id = registry.get("_id")
                 timespan = registry.get("timespan")
-                for stock in registry["descargas_pendientes"]:
+
+                logger.info(f"Descargando registros con timespanp {timespan}")
+
+                for asset in registry["descargas_pendientes"]:
                     # Añadir check para ver si ya está
-                    res = TDA_CoreData.__findAsset(stock, timespan)
+                    res = TDA_CoreData.__findAsset(asset, timespan)
                     if res[0]:
-                        TDA_CoreData.__eliminateFromRegistry(id, stock)
+                        TDA_CoreData.__eliminateFromRegistry(id, asset)
                         continue
-                    res = TDA_CoreData.__downloadStock(id, stock, timespan)
+                    res = TDA_CoreData.__downloadAsset(id, asset, timespan)
                     if not res[0] and res[1] == "Llamadas diarias agotadas":
                         return (False, "Llamadas diarias agotadas")
 
-                    if res[0]:
-                        TDA_CoreData.__eliminateFromRegistry(id, stock)
+                    invalid_item = False
+                    try:
+                        temporal_res = res[1].json()
+                        invalid_item = (
+                            f"**symbol** not found: {asset}. Please specify it correctly according to API Documentation."
+                            == temporal_res.get("message")
+                        )
+                    except Exception as e:
+                        pass
+                    if res[0] or invalid_item:
+                        TDA_CoreData.__eliminateFromRegistry(id, asset)
+                if not registry["descargas_pendientes"]:
+                    logger.info(f"No hay registros de con timespan {timespan}")
+                logger.info(f"Descargados todos los registros con timespan {timespan}")
 
             conn.close()
         except Exception as e:
@@ -67,7 +80,7 @@ class TDA_CoreData:
             logger.error("An error occurred: %s", str(e))
             return (False, e)
 
-    def __downloadStock(id, stock, interval):
+    def __downloadAsset(id, asset, interval):
         conn = None
         try:
             # Obtener la configuración de la API
@@ -85,9 +98,12 @@ class TDA_CoreData:
                 if not check[0]:
                     return check
 
-                response = TDA_CoreData.__stockRange(stock, interval, end_date)
+                response = TDA_CoreData.__assetDataRange(asset, interval, end_date)
                 if not response[0]:
                     return response
+
+                if isinstance(response[1], Response):
+                    return (False, response[1])
 
                 # Sumar 1 call
                 TDA_CoreData.__oneMoreCall()
@@ -96,7 +112,7 @@ class TDA_CoreData:
 
                 if not earliestTimestamp:
                     res = TDA_CoreData.__earliestTimestamp(
-                        stock, interval, finalDataSet["mic_code"]
+                        asset, interval, finalDataSet["mic_code"]
                     )
 
                     # Sumar 1 call
@@ -107,6 +123,9 @@ class TDA_CoreData:
 
                     earliestTimestamp = res[1]["datetime"]
 
+                logger.info(
+                    "Last downloaded timestmp: %s", finalDataSet["data"][-1]["datetime"]
+                )
                 if finalDataSet["data"][-1]["datetime"] == earliestTimestamp:
                     moreData = False
                 else:
@@ -116,8 +135,8 @@ class TDA_CoreData:
             if not res[0]:
                 return res
             # Fin
-            logger.info("%s data downloaded successfully", str(stock))
-            return (True, stock)
+            logger.info("%s data downloaded successfully", str(asset))
+            return (True, asset)
         except Exception as e:
             if conn:
                 conn.close()
@@ -149,6 +168,27 @@ class TDA_CoreData:
     def __anotherCall(config_twelve_data_api):
         conn = None
         try:
+            # Comprobamos si el tiempo de modificación es de hace un año
+            last_modification_date = config_twelve_data_api.get("fecha_modificacion")
+            if last_modification_date:
+                current_date = datetime.now()
+                one_day_ago = current_date - timedelta(days=1)
+                if last_modification_date < one_day_ago:
+                    logger.info("La fecha de modificación es de hace un día.")
+                    TDA_CoreData.__DailyCallTOZero()
+                    TDA_CoreData.__minuteCallTOZero()
+                    return (True, "")
+        
+            # Verificamos si la fecha de modificación es de hace más de un minuto y medio
+            if last_modification_date:
+                current_date = datetime.now()
+                one_and_a_half_minutes_ago = current_date - timedelta(minutes=1, seconds=30)
+                if last_modification_date < one_and_a_half_minutes_ago:
+                    logger.info("La fecha de modificación es de hace más de un minuto y medio.")
+                    TDA_CoreData.__minuteCallTOZero()
+                    return (True, "")
+            
+            # Comprobamos llamadas diarias
             check = (
                 config_twelve_data_api["llamadas_actuales_diarias"]
                 < config_twelve_data_api["max_llamadas_diarias"] - 20
@@ -162,34 +202,17 @@ class TDA_CoreData:
                 < config_twelve_data_api["max_llamadas_por_minuto"] - 2
             )
             if not check:
-                conn = MongoDbFunctions(
-                    DATABASE["host"],
-                    DATABASE["port"],
-                    DATABASE["username"],
-                    DATABASE["password"],
-                    DATABASE["dbname"],
-                    "config",
-                )
-                logger.info("Obteniendo configuración de la API Twelve Data")
-                config_twelve_data_api = conn.findByField("nombre_api", "twelvedataapi")
-                logger.info("Configuración obtenida")
-                config_twelve_data_api["llamadas_actuales_por_minuto"] = 0
-
-                conn.updateById(config_twelve_data_api["_id"], config_twelve_data_api)
-
-                logger.info("Configuración actualizada")
-                conn.close()
-                logger.info("Llamadas por minuto agotadas, esperando 1 minuto")
+                TDA_CoreData.__minuteCallTOZero()
                 time.sleep(60)
             return (True, "")
         except Exception as e:
             logger.error("An error occurred: %s", str(e))
             return (False, e)
 
-    def __earliestTimestamp(stock, interval, mic_code):
+    def __earliestTimestamp(asset, interval, mic_code):
         try:
             date = ReferenceData.earliest_timestamp(
-                symbol=stock,
+                symbol=asset,
                 interval=interval,
                 mic_code=mic_code,
                 apikey=TWELVE_DATA_API_KEY,
@@ -201,20 +224,25 @@ class TDA_CoreData:
             date = date[1].json()
             if date.get("status") == "error":
                 return (False, date)
-
+            logger.info(
+                "Earliest timestamp for %s with interval %s is %s",
+                asset,
+                interval,
+                date["datetime"],
+            )
             return (True, date)
         except Exception as e:
             logger.error("An error occurred: %s", str(e))
             return (False, e)
 
-    def __stockRange(stock, interval, end_date=None, parseData={}):
+    def __assetDataRange(asset, interval, end_date=None, parseData={}):
         try:
             logger.info(
-                "Downloading stock data for %s with interval %s", stock, interval
+                "Downloading asset data for %s with interval %s", asset, interval
             )
 
             params = {
-                "symbol": stock,
+                "symbol": asset,
                 "interval": interval,
                 "outputsize": "5000",
                 "previous_close": "true",
@@ -228,7 +256,7 @@ class TDA_CoreData:
 
             if not response[0]:
                 logger.error(
-                    "Failed to download data for %s with interval %s", stock, interval
+                    "Failed to download data for %s with interval %s", asset, interval
                 )
                 return (False, response)
 
@@ -239,7 +267,7 @@ class TDA_CoreData:
                     "Received an error response: %s",
                     temporalDataSet.get("message", "Unknown error"),
                 )
-                return (False, response)
+                return response
 
             if parseData == {}:
                 parseData.update(temporalDataSet["meta"])
@@ -248,7 +276,7 @@ class TDA_CoreData:
                 parseData["data"].extend(temporalDataSet["values"])
 
             logger.info(
-                "Data successfully downloaded for %s with interval %s", stock, interval
+                "Data successfully downloaded for %s with interval %s", asset, interval
             )
             return (True, parseData)
         except Exception as e:
@@ -272,13 +300,13 @@ class TDA_CoreData:
             logger.info("Configuración obtenida")
             config_twelve_data_api["llamadas_actuales_diarias"] += 1
             config_twelve_data_api["llamadas_actuales_por_minuto"] += 1
+            config_twelve_data_api["fecha_modificacion"] = datetime.now()
 
             conn.updateById(config_twelve_data_api["_id"], config_twelve_data_api)
 
             logger.info("Registry updated successfully")
             conn.close()
             return (True, "")
-            return (True, "parseData")
         except Exception as e:
             if conn:
                 conn.close()
@@ -297,9 +325,10 @@ class TDA_CoreData:
                 "CoreData",
             )
             logger.info("Uploading data for %s", assetData["symbol"])
+            assetData["last_modified"] = datetime.now()
 
             conn.insert(dict(assetData))
-            logger.info("Data uploaded successfully")
+            logger.info("Asset uploaded successfully to the database")
             conn.close()
             return (True, "")
         except Exception as e:
@@ -308,7 +337,7 @@ class TDA_CoreData:
             logger.error("An error occurred: %s", str(e))
             return (False, e)
 
-    def __eliminateFromRegistry(id, stock):
+    def __eliminateFromRegistry(id, asset):
         conn = None
         try:
             conn = MongoDbFunctions(
@@ -320,9 +349,9 @@ class TDA_CoreData:
                 "DownloadRegistry",
             )
             registry = conn.findById(id)
-            logger.info("Deleting %s from %s registry", stock, registry["timespan"])
+            logger.info("Deleting %s from %s registry", asset, registry["timespan"])
 
-            registry["descargas_pendientes"].remove(stock)
+            registry["descargas_pendientes"].remove(asset)
             conn.updateById(id, registry)
 
             logger.info("Delete successfully")
@@ -334,7 +363,7 @@ class TDA_CoreData:
             logger.error("An error occurred: %s", str(e))
             return (False, e)
 
-    def __findAsset(stock, interval):
+    def __findAsset(asset, interval):
         conn = None
         try:
             conn = MongoDbFunctions(
@@ -345,13 +374,64 @@ class TDA_CoreData:
                 DATABASE["dbname"],
                 "CoreData",
             )
-            logger.info("Finding %s data for %s", interval, stock)
-            fields = {"symbol": stock, "interval": interval}
+            logger.info("Finding %s data for %s", interval, asset)
+            fields = {"symbol": asset, "interval": interval}
             res = conn.findByMultipleFields(fields)
             conn.close()
             if res:
-                logger.info("Stock already downloaded")
+                logger.info("Asset already in the database")
                 return (True, "")
+            return (False, "")
+        except Exception as e:
+            if conn:
+                conn.close()
+            logger.error("An error occurred: %s", str(e))
+            return (False, e)
+
+    def __minuteCallTOZero():
+        conn = None
+        try:
+            conn = MongoDbFunctions(
+                DATABASE["host"],
+                DATABASE["port"],
+                DATABASE["username"],
+                DATABASE["password"],
+                DATABASE["dbname"],
+                "config",
+            )
+            logger.info("Obteniendo configuración de la API Twelve Data")
+            config_twelve_data_api = conn.findByField("nombre_api", "twelvedataapi")
+            logger.info("Configuración obtenida")
+            config_twelve_data_api["llamadas_actuales_por_minuto"] = 0
+            conn.updateById(config_twelve_data_api["_id"], config_twelve_data_api)
+            logger.info("Configuración actualizada")
+            conn.close()
+            logger.info("Llamadas por minuto zeorizadas")
+            return (False, "")
+        except Exception as e:
+            if conn:
+                conn.close()
+            logger.error("An error occurred: %s", str(e))
+            return (False, e)
+
+    def __DailyCallTOZero():
+        conn = None
+        try:
+            conn = MongoDbFunctions(
+                DATABASE["host"],
+                DATABASE["port"],
+                DATABASE["username"],
+                DATABASE["password"],
+                DATABASE["dbname"],
+                "config",
+            )
+            logger.info("Obteniendo configuración de la API Twelve Data")
+            config_twelve_data_api = conn.findByField("nombre_api", "twelvedataapi")
+            logger.info("Configuración obtenida")
+            config_twelve_data_api["llamadas_actuales_diarias"] = 0
+            conn.updateById(config_twelve_data_api["_id"], config_twelve_data_api)
+            logger.info("Llamadas diarias zeorizadas")
+            conn.close()
             return (False, "")
         except Exception as e:
             if conn:

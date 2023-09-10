@@ -1,5 +1,5 @@
 # Import the required libraries
-import logging
+from logging_config import logger
 from pymongo import MongoClient
 import pymongo
 from bson.objectid import ObjectId
@@ -9,7 +9,6 @@ import bson
 
 
 # Configure the logger
-logger = logging.getLogger(__name__)
 
 
 class MongoDbFunctions:
@@ -129,6 +128,36 @@ class MongoDbFunctions:
             dict or None: The matching document, or None if not found.
         """
         return self.collection.find_one(ObjectId(id))
+
+    def findAll(
+        self,
+        sort=False,
+        sortField=None,
+        asc=True,
+    ):
+        """
+        Find documents in the collection based on a field and value.
+
+        Args:
+            field (str): The field to search in.
+            value (str): The value to search for.
+            exact_match (bool, optional): Whether to perform an exact match or not. Default is True.
+            get_all (bool, optional): Whether to retrieve all matching documents or just the first one.
+                                    Default is False.
+
+        Returns:
+            list or dict: Depending on the 'get_all' parameter, either a list of matching documents or
+                        the first matching document found. Returns None if no matches are found.
+        """
+        query = {}
+
+        if sort:
+            data = self.collection.find(query).sort(
+                sortField, pymongo.ASCENDING if asc else pymongo.DESCENDING
+            )
+            return list(data)
+        return list(self.collection.find(query))
+
 
     def findByField(
         self,

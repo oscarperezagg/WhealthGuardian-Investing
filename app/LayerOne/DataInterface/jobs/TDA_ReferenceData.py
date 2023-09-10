@@ -1,10 +1,10 @@
 from externalApis import ReferenceData
 from util import MongoDbFunctions
 from secret import DATABASE
-import logging
+from logging_config import logger
 
 # Configure the logger
-logger = logging.getLogger(__name__)
+
 
 
 class TDA_ReferenceData:

@@ -1,8 +1,8 @@
-import logging
+from logging_config import logger
 from .TwelveDataBase import TwelveDataBase
 
 # Configure the logger
-logger = logging.getLogger(__name__)
+
 
 
 class ReferenceData:
