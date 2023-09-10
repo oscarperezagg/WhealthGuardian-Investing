@@ -31,7 +31,7 @@ export default function DashboardPage() {
             <div className="hidden flex-col md:flex">
                 <div className="border-b">
                     <div className="flex h-16 items-center px-4">
-                        <div className="relative z-20 flex items-center text-md font-medium">
+                    <div className="hidden relative z-20 flex items-center text-md font-medium ">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 24 24"
@@ -44,11 +44,14 @@ export default function DashboardPage() {
                             >
                                 <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
                             </svg>
-                            WG Investing
+                            <span className="hidden lg:block">                            WG Investing
+                            </span>
                         </div>
                         <MainNav className="mx-6" />
                         <div className="ml-auto flex items-center space-x-4">
-                            <Search />
+                            <div className="">
+                                <Search />
+                            </div>
                             <UserNav />
                         </div>
                     </div>
