@@ -91,7 +91,7 @@ export default function LoginPage() {
             return
         }
 
-        if (res?.ok) return router.push("eu/dashboard")
+        if (res?.ok) return router.push("vip/dashboard")
 
     };
 
