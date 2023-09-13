@@ -354,7 +354,7 @@ class MongoDbUtil:
 if __name__ == "__main__":
     # Create a new instance of the MongoDbFunctions class
     mongo = MongoDbFunctions(
-        "192.168.0.39",
+        "172.20.10.5",
         27017,
         "oscarperezarruti",
         "O28466371o#*",
