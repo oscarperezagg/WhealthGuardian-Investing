@@ -1,17 +1,35 @@
 'use client'
 import { FullNavBar } from "../navbar/fullnavbar"
 import DemoPage from "@/components/mine/table"
-import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { getFileFromGridFS } from "@/lib/other"
+
+
+
+import Link from "next/link"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+
+import { Button } from "@/components/ui/button"
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { toast } from "@/components/ui/use-toast"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ColumnDef } from "@tanstack/react-table"
 import {
@@ -21,19 +39,11 @@ import {
 } from "@/components/ui/alert"
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
 
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+
 
 import { referenceData, columns } from "@/components/columns/referenceData"
 import axios from "axios"
-import { useEffect, useState } from "react"
+import { FormEvent, useEffect, useState } from "react"
 import {
     Dialog,
     DialogContent,
@@ -45,6 +55,8 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+
+
 async function getData(endpoint: string): Promise<referenceData[]> {
     console.log("getData")
     try {
@@ -63,9 +75,85 @@ async function getData(endpoint: string): Promise<referenceData[]> {
     }
 }
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+import { ToastAction } from "@/components/ui/toast"
+import { DialogClose } from "@radix-ui/react-dialog"
+import React from "react"
+
+const timestamps = [
+    {
+        id: "1month",
+        label: "1 month",
+    },
+    {
+        id: "1week",
+        label: "1 week",
+    },
+    {
+        id: "1day",
+        label: "1 day",
+    },
+    {
+        id: "4hours",
+        label: "4 hours",
+    },
+    {
+        id: "2hours",
+        label: "2 hours",
+    },
+    {
+        id: "1hour",
+        label: "1 hour",
+    },
+    {
+        id: "45min",
+        label: "45 minutes",
+    },
+    {
+        id: "30min",
+        label: "30 minutes",
+    },
+    {
+        id: "15min",
+        label: "15 minutes",
+    },
+    {
+        id: "5min",
+        label: "5 min",
+    },
+    {
+        id: "1minute",
+        label: "1 minute",
+    },
+] as const;
+
+
+const FormSchema = z.object({
+    timestamps: z.array(z.string()).refine((value) => value.some((item) => item), {
+        message: "You have to select at least one item.",
+    }),
+    country: z
+        .string({
+            required_error: "Please select a contry to display.",
+        })
+})
+
+
 export default function markets() {
     const [data1, setData1] = useState([]);
     const [data2, setData2] = useState([]);
+    const [PersonalAlertTitle, setPersonalAlertTitle] = useState("");
 
     useEffect(() => {
         // Fetch data after the component has mounted (website has loaded)
@@ -84,9 +172,55 @@ export default function markets() {
     }, []); // Empty dependency array ensures this runs only once after initial render
 
 
+
+
+
+    const form = useForm<z.infer<typeof FormSchema>>({
+        resolver: zodResolver(FormSchema),
+        defaultValues: {
+            timestamps: ["1month", "1week", "1day"],
+        },
+
+    })
+
+    function onSubmit(data: z.infer<typeof FormSchema>) {
+        console.log(data)
+        myfunc()
+        setOpen(false)
+
+    }
+
+    function myfunc() {
+        setTimeout(() => {
+            console.log("myfunc")
+            setPersonalAlertTitle("Upload Successful")
+            setAlertStatus(true)
+
+
+        }, 1000)
+    }
+
+
+    const [open, setOpen] = React.useState(false);
+    const [alertStatus, setAlertStatus] = React.useState(false);
+
     return (
         <>
-
+            <AlertDialog open={alertStatus} onOpenChange={setAlertStatus}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{PersonalAlertTitle}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your account
+                            and remove your data from our servers.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction>Continue</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
             <FullNavBar />
             <div className="flex-1 space-y-4 p-8 pt-6">
                 <Tabs defaultValue="stocks" className="hidden md:block">
@@ -96,7 +230,7 @@ export default function markets() {
                             <TabsTrigger value="stocks">Stocks</TabsTrigger>
                             <TabsTrigger value="indexes">Indexes</TabsTrigger>
                         </TabsList>
-                        <Dialog>
+                        <Dialog open={open} onOpenChange={setOpen}>
                             <DialogTrigger asChild>
                                 <Button variant="outline">Upload List</Button>
                             </DialogTrigger>
@@ -104,160 +238,104 @@ export default function markets() {
                                 <DialogHeader>
                                     <DialogTitle>Upload List</DialogTitle>
                                     <DialogDescription>
-                                        Upload the list of assets you want to download. This list must separate symbols with a comma.
+                                        Upload the list of assets you want to download.
                                     </DialogDescription>
                                 </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid w-full max-w-sm items-center gap-1.5">
-                                        <Label htmlFor="picture" className="mb-2">List</Label>
-                                        <Input id="picture" type="file" />
-                                    </div>
-                                    <Select>
-                                        <Label htmlFor="picture">Country</Label>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select a country" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectItem value="United States">United States</SelectItem>
-                                                <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                                                <SelectItem value="Japan">Japan</SelectItem>
-                                                <SelectItem value="China">China</SelectItem>
-                                                <SelectItem value="Singapore">Singapore</SelectItem>
-                                                <SelectItem value="Switzerland">Switzerland</SelectItem>
-                                                <SelectItem value="Germany">Germany</SelectItem>
-                                                <SelectItem value="Canada">Canada</SelectItem>
-                                                <SelectItem value="Australia">Australia</SelectItem>
-                                                <SelectItem value="Luxembourg">Luxembourg</SelectItem>
-                                                <SelectItem value="Hong Kong">Hong Kong</SelectItem>
-                                                <SelectItem value="France">France</SelectItem>
-                                                <SelectItem value="Netherlands">Netherlands</SelectItem>
-                                                <SelectItem value="Sweden">Sweden</SelectItem>
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                    <Label htmlFor="picture">Timestamps</Label>
-                                    <div className="flex space-x-10" >
-                                        <div className="flex flex-col space-y-2">
-                                            {/* Grupo izquierdo */}
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms1w" />
-                                                <label
-                                                    htmlFor="terms1w"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    1 month
-                                                </label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms1w" />
-                                                <label
-                                                    htmlFor="terms1w"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    1 week
-                                                </label>
-                                            </div>
 
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms1d" />
-                                                <label
-                                                    htmlFor="terms1d"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    1 day
-                                                </label>
-                                            </div>
 
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms4h" />
-                                                <label
-                                                    htmlFor="terms4h"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    4 hours
-                                                </label>
-                                            </div>
 
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms2h" />
-                                                <label
-                                                    htmlFor="terms2h"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    2 hours
-                                                </label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms1h" />
-                                                <label
-                                                    htmlFor="terms1h"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    1 hour
-                                                </label>
-                                            </div>
-
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms45m" />
-                                                <label
-                                                    htmlFor="terms45m"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    45 minutes
-                                                </label>
-                                            </div>
-
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms30m" />
-                                                <label
-                                                    htmlFor="terms30m"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    30 minutes
-                                                </label>
-                                            </div>
-
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms15m" />
-                                                <label
-                                                    htmlFor="terms15m"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    15 minutes
-                                                </label>
-                                            </div>
-
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms5m" />
-                                                <label
-                                                    htmlFor="terms5m"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    5 minutes
-                                                </label>
-                                            </div>
-
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="terms1m" />
-                                                <label
-                                                    htmlFor="terms1m"
-                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                >
-                                                    1 minute
-                                                </label>
-                                            </div>
-
-                                            {/* Agrega más elementos al grupo izquierdo según sea necesario */}
+                                <Form {...form}>
+                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                                            <Label htmlFor="file">Picture</Label>
+                                            <Input id="file" type="file" />
                                         </div>
+                                        <FormField
+                                            control={form.control}
+                                            name="country"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Country</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Select a verified email to display" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            <SelectItem value="United States">United States</SelectItem>
+                                                            <SelectItem value="Spain">Spain</SelectItem>
+                                                            <SelectItem value="Japan">Japan</SelectItem>
+
+                                                            <SelectItem value="China">China</SelectItem>
+                                                            <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                                                            <SelectItem value="Germany">Germany</SelectItem>
+                                                            <SelectItem value="France">France</SelectItem>
+                                                            <SelectItem value="Canada">Canada</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="timestamps"
+                                            render={() => (
+                                                <FormItem>
+                                                    <div className="mb-4">
+                                                        <FormLabel className="text-base">Timestamps</FormLabel>
+                                                        <FormDescription>
+                                                            Select the timestamps you want to display in the sidebar.
+                                                        </FormDescription>
+                                                    </div>
+                                                    {timestamps.map((timestamp) => (
+                                                        <FormField
+                                                            key={timestamp.id}
+                                                            control={form.control}
+                                                            name="timestamps"
+                                                            render={({ field }) => {
+                                                                return (
+                                                                    <FormItem
+                                                                        key={timestamp.id}
+                                                                        className="flex flex-row items-start space-x-2 space-y-0"
+                                                                    >
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={field.value?.includes(timestamp.id)}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    return checked
+                                                                                        ? field.onChange([...field.value, timestamp.id])
+                                                                                        : field.onChange(
+                                                                                            field.value?.filter(
+                                                                                                (value) => value !== timestamp.id
+                                                                                            )
+                                                                                        )
+                                                                                }}
+                                                                            />
+                                                                        </FormControl>
+                                                                        <FormLabel className="text-sm font-normal">
+                                                                            {timestamp.label}
+                                                                        </FormLabel>
+                                                                    </FormItem>
+                                                                )
+                                                            }}
+                                                        />
+                                                    ))}
+                                                    <FormMessage />
+                                                </FormItem>
+
+                                            )}
+                                        />
+
+                                        <DialogFooter >
+                                            <Button type="submit">Submit</Button>
+                                        </DialogFooter>
 
 
-                                    </div>
+                                    </form>
+                                </Form>
 
-                                </div>
-                                <DialogFooter>
-                                    <Button type="submit">Download</Button>
-                                </DialogFooter>
                             </DialogContent>
                         </Dialog>
                     </div>
