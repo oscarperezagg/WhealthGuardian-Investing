@@ -105,15 +105,15 @@ const timestamps = [
         label: "1 day",
     },
     {
-        id: "4hours",
+        id: "4h",
         label: "4 hours",
     },
     {
-        id: "2hours",
+        id: "2h",
         label: "2 hours",
     },
     {
-        id: "1hour",
+        id: "1h",
         label: "1 hour",
     },
     {
@@ -133,7 +133,7 @@ const timestamps = [
         label: "5 min",
     },
     {
-        id: "1minute",
+        id: "1min",
         label: "1 minute",
     },
 ] as const;
@@ -154,6 +154,11 @@ export default function markets() {
     const [data1, setData1] = useState([]);
     const [data2, setData2] = useState([]);
     const [PersonalAlertTitle, setPersonalAlertTitle] = useState("");
+    const [selectedFile, setSelectedFile] = useState(null);
+
+    const handleFileChange = (e) => {
+        setSelectedFile(e.target.files[0]);
+    };
 
     useEffect(() => {
         // Fetch data after the component has mounted (website has loaded)
@@ -173,7 +178,23 @@ export default function markets() {
 
 
 
-
+    // Función para leer un archivo y devolver su contenido como una cadena
+    async function readFile(file: File): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                if (event.target && event.target.result) {
+                    resolve(event.target.result as string);
+                } else {
+                    reject(new Error('Error reading file'));
+                }
+            };
+            reader.onerror = (event) => {
+                reject(new Error('Error reading file'));
+            };
+            reader.readAsText(file);
+        });
+    }
 
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
@@ -183,17 +204,46 @@ export default function markets() {
 
     })
 
-    function onSubmit(data: z.infer<typeof FormSchema>) {
-        console.log(data)
-        myfunc()
+    const [submittedData, setSubmittedData] = useState("")
+    async function onSubmit(data: z.infer<typeof FormSchema>) {
+        if (!selectedFile) {
+            console.log('Please select a file.');
+            return;
+        }
+
+
+        try {
+            // Lee el archivo seleccionado
+            const fileContent = await readFile(selectedFile);
+
+            // Toma la primera línea del archivo
+            const firstLine = fileContent.split('\n')[0];
+
+            // Guarda la primera línea en una variable
+            const assets = firstLine.trim().split(",");
+            console.log(assets)
+
+            const res = await axios.post('/api/eu/newregistry', {
+                timestamps: data.timestamps,
+                country: data.country,
+                assets: assets
+            })
+            console.log(res)
+            
+            setPersonalAlertTitle("Status: " + res.statusText + " - " + res.status)
+            setSubmittedData(res.data)
+            opeAlert()
+        } catch (error) {
+            console.error('Error uploading file:', error);
+        }
         setOpen(false)
 
     }
 
-    function myfunc() {
+    function opeAlert() {
         setTimeout(() => {
             console.log("myfunc")
-            setPersonalAlertTitle("Upload Successful")
+            
             setAlertStatus(true)
 
 
@@ -211,17 +261,15 @@ export default function markets() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>{PersonalAlertTitle}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your account
-                            and remove your data from our servers.
+                            {submittedData}
+
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction>Continue</AlertDialogAction>
+                        <AlertDialogCancel>Close</AlertDialogCancel>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <FullNavBar />
             <div className="flex-1 space-y-4 p-8 pt-6">
                 <Tabs defaultValue="stocks" className="hidden md:block">
                     <div className="flex justify-between">
@@ -247,8 +295,11 @@ export default function markets() {
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                                         <div className="grid w-full max-w-sm items-center gap-1.5">
-                                            <Label htmlFor="file">Picture</Label>
-                                            <Input id="file" type="file" />
+                                            <Label htmlFor="file">File</Label>
+                                            <Input id="file" type="file"
+                                                onChange={handleFileChange}
+                                                required
+                                            />
                                         </div>
                                         <FormField
                                             control={form.control}
@@ -259,7 +310,7 @@ export default function markets() {
                                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Select a verified email to display" />
+                                                                <SelectValue placeholder="Choose a country" />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>

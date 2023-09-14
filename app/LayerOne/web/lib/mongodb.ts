@@ -36,3 +36,24 @@ export const connect = async () => {
         return Promise.reject(false);
     }
 }
+
+
+// Exportar una función asincrónica llamada "connect" para establecer la conexión a MongoDB
+export const connection = async () => {
+    try {
+        // Establecer la conexión a MongoDB utilizando la URL obtenida de las variables de entorno
+        let CONNECTION_STRING = "mongodb://" + databaseConfig.host + ":" + databaseConfig.port + "/" + MONGODB_DBNAME
+
+        const { connection } = await mongoose.connect(CONNECTION_STRING);
+
+        // Verificar el estado de la conexión y mostrar un mensaje si está conectado
+        if (connection.readyState === 1) {
+            console.log('Connected to MongoDB');
+            return connection
+        }
+    } catch (error) {
+        // Mostrar un mensaje si ocurre un error al conectarse a MongoDB
+        console.error(error);
+        return Promise.reject(false);
+    }
+}

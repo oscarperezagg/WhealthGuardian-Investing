@@ -119,7 +119,7 @@ export function NavigationMenuDemo() {
                     </Link>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                    <Link href="/vip/dashboard" legacyBehavior passHref>
+                    <Link href="/vip/settings" legacyBehavior passHref>
                         <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                             Settings
                         </NavigationMenuLink>

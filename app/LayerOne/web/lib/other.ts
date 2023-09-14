@@ -6,7 +6,7 @@ const fs = require('fs');
 import { connectToDatabase } from './db';
 
 export async function getFileFromGridFS() {
-    const db = await connectToDatabase('mongodb://192.168.1.76:27017/WhealthGuardian');
+    const db = await connectToDatabase('mongodb://172.20.10.5:27017/WhealthGuardian');
     const bucket = new GridFSBucket(db);
 
     // El nombre del archivo que deseas obtener
