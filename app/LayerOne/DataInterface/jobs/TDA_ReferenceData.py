@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from externalApis import ReferenceData
 from util import MongoDbFunctions
 from secret import DATABASE

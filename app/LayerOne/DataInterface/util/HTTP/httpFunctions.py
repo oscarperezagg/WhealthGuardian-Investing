@@ -1,3 +1,4 @@
+import json
 from logging_config import logger
 import requests
 
@@ -31,9 +32,10 @@ class HttpFunctions:
       logger.debug("Request URL with parameters: %s", url)
       
       if method == "GET":
-         response = requests.get(url, params=payload, proxies=proxy)
+         response = requests.get(url, proxies=proxy)
       elif method == "POST":
-         response = requests.post(url, params=payload, proxies=proxy)
+         headers = {'Content-Type': 'application/json'}  # Set the Content-Type header to JSON
+         response = requests.post(url, data=json.dumps(payload), proxies=proxy, headers=headers)
       else:
          logger.error("Invalid HTTP method")
          return  (False, "Invalid HTTP method")

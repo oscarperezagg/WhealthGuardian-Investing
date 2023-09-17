@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     // Obtener los datos del cuerpo de la solicitud
     const { assets, timestamps, country } = await request.json();
 
-    console.log(assets,timestamps)
+    console.log(assets, timestamps)
 
     // Definir la conexión a la base de datos
     const CONNECTION_STRING = "mongodb://" + databaseConfig.host + ":" + databaseConfig.port + "/" + MONGODB_DBNAME;
@@ -56,13 +56,26 @@ export async function POST(request: Request) {
             // Filtro para identificar los documentos que deseas actualizar
             const filtro = { timespan: timestamp };
 
-            // Datos que deseas añadir al array "descargas_pendientes"
-            const datosAAgregar = { $each: assets };
+            // Obtener el documento actual
+            const documento = await db.collection(nombreColeccion).findOne(filtro);
 
-            // Actualizar los documentos que cumplan con el filtro y añadir datos al array "descargas_pendientes"
-            const resultado = await db.collection(nombreColeccion).updateMany(filtro, { $push: { descargas_pendientes: datosAAgregar } });
+            if (documento) {
+                // Obtener el array "descargas_pendientes" del documento
+                const descargasPendientes = documento.descargas_pendientes || [];
 
-            console.log(`Se actualizaron ${resultado.modifiedCount} documentos para timestamp ${timestamp}`);
+                // Calcular los elementos que no están en descargasPendientes
+                const nuevosElementos = assets.filter((asset: any) => !descargasPendientes.includes(asset));
+
+                if (nuevosElementos.length > 0) {
+                    // Actualizar el documento con los nuevos elementos en "descargas_pendientes"
+                    const resultado = await db.collection(nombreColeccion).updateOne(
+                        filtro,
+                        { $addToSet: { descargas_pendientes: { $each: nuevosElementos } } }
+                    );
+
+                    console.log(`Se actualizaron ${resultado.modifiedCount} documentos para timestamp ${timestamp}`);
+                }
+            }
         }
     } catch (error) {
         console.error('Error al conectar o actualizar datos:', error);
