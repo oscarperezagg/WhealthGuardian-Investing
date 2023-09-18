@@ -44,7 +44,9 @@ class TDA_CoreData:
             for registry in DownloadRegistries:
                 id = registry.get("_id")
                 timespan = registry.get("timespan")
-
+                if timespan == "1min":
+                    logger.info(f"La funcionalidad no se ha implentado para timespan {timespan}")
+                    continue
                 logger.info(f"Descargando registros con timespanp {timespan}")
 
                 for asset in registry["descargas_pendientes"]:
