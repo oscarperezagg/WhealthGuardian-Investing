@@ -1,10 +1,10 @@
-from jobs import AV_CoreData
+from jobs import AV_CoreData,TDA_CoreData
 from logging_config import logger
 
 logger.info("Starting the data interface...\n|     ")
 
 logger.info("========= DOWNLOAD STARTED =========")
-AV_CoreData.downloadAsset()
+TDA_CoreData.downloadAsset()
 logger.info("========= DOWNLOAD FINISHED =========")
 
 

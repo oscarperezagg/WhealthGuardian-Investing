@@ -83,8 +83,9 @@ class TDA_CoreData:
     def __downloadAsset(id, asset, interval):
         conn = None
         try:
+            if interval == "60min":
+                interval = "1h"
             # Obtener la configuración de la API
-            config_twelve_data_api = TDA_CoreData.__getConfig()
 
             # Descargar datos
             finalDataSet = {}
@@ -94,11 +95,11 @@ class TDA_CoreData:
 
             while moreData:
                 # Comprobar si hay llamadas disponibles
-                check = TDA_CoreData.__anotherCall(config_twelve_data_api)
+                check = TDA_CoreData.__anotherCall()
                 if not check[0]:
                     return check
 
-                response = TDA_CoreData.__assetDataRange(asset, interval, end_date)
+                response = TDA_CoreData.__assetDataRange(asset, interval,end_date,finalDataSet)
                 if not response[0]:
                     return response
 
@@ -111,6 +112,11 @@ class TDA_CoreData:
                 finalDataSet = response[1]
 
                 if not earliestTimestamp:
+                    
+                    check = TDA_CoreData.__anotherCall()
+                    if not check[0]:
+                        return check
+                
                     res = TDA_CoreData.__earliestTimestamp(
                         asset, interval, finalDataSet["mic_code"]
                     )
@@ -122,6 +128,7 @@ class TDA_CoreData:
                         return res
 
                     earliestTimestamp = res[1]["datetime"]
+                    logger.info("Earliest timestamp: %s", earliestTimestamp)
 
                 logger.info(
                     "Last downloaded timestmp: %s", finalDataSet["data"][-1]["datetime"]
@@ -165,15 +172,24 @@ class TDA_CoreData:
             logger.error("An error occurred: %s", str(e))
             return (False, e)
 
-    def __anotherCall(config_twelve_data_api):
+    def __anotherCall():
         conn = None
         try:
+            config_twelve_data_api = TDA_CoreData.__getConfig()
+
             # Comprobamos si el tiempo de modificación es de hace un año
             last_modification_date = config_twelve_data_api.get("fecha_modificacion")
             if last_modification_date:
                 current_date = datetime.now()
-                one_day_ago = current_date - timedelta(days=1)
-                if last_modification_date < one_day_ago:
+    
+                # Calcula la diferencia de tiempo entre la fecha de modificación y la fecha actual
+                time_difference = current_date - last_modification_date
+                
+                # Define la duración mínima requerida (en este caso, 1 día)
+                min_duration = timedelta(days=1)
+                
+                # Comprueba si la diferencia de tiempo es mayor que la duración mínima
+                if time_difference > min_duration:
                     logger.info("La fecha de modificación es de hace un día.")
                     TDA_CoreData.__DailyCallTOZero()
                     TDA_CoreData.__minuteCallTOZero()
@@ -181,11 +197,14 @@ class TDA_CoreData:
 
             # Verificamos si la fecha de modificación es de hace más de un minuto y medio
             if last_modification_date:
-                current_date = datetime.now()
-                one_and_a_half_minutes_ago = current_date - timedelta(
-                    minutes=1, seconds=30
-                )
-                if last_modification_date < one_and_a_half_minutes_ago:
+                # Obtiene la fecha y hora actual
+                current_datetime = datetime.now()
+                # Calcula la diferencia de tiempo entre la fecha de modificación y la fecha actual
+                time_difference = current_datetime - last_modification_date
+                # Define la duración máxima permitida (en este caso, 2 minutos)
+                max_duration = timedelta(minutes=2)
+
+                if time_difference > max_duration:
                     logger.info(
                         "La fecha de modificación es de hace más de un minuto y medio."
                     )
@@ -207,7 +226,8 @@ class TDA_CoreData:
             )
             if not check:
                 TDA_CoreData.__minuteCallTOZero()
-                time.sleep(60)
+                logger.info("Esperando 60 segundos...")
+                time.sleep(80)
             return (True, "")
         except Exception as e:
             logger.error("An error occurred: %s", str(e))

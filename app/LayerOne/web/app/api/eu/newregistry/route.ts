@@ -54,8 +54,12 @@ export async function POST(request: Request) {
         // Iterar a través de los valores de timestamps
         for (const timestamp of timestamps) {
             // Filtro para identificar los documentos que deseas actualizar
-            const filtro = { timespan: timestamp };
-
+         
+            let filtro = { timespan: timestamp };
+            // Si el timestamp es "1h", actualiza el filtro a "60min"
+            if (timestamp === "1h") {
+                filtro = { timespan: "60min" };
+            }
             // Obtener el documento actual
             const documento = await db.collection(nombreColeccion).findOne(filtro);
 
