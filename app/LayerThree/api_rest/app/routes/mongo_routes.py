@@ -245,7 +245,7 @@ def find_documents_by_multiple_fields():
     try:
         # Obtén los datos de la solicitud en formato JSON
         request_data = request.get_json()
-
+        logger.info(f"Datos de la solicitud: {request_data}")
         # Extrae los parámetros necesarios de la solicitud
         collection_name = request_data.get("collection_name")
         fields = request_data.get("fields")

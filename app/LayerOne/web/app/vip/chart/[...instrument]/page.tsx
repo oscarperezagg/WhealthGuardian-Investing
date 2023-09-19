@@ -1,81 +1,186 @@
 'use client';
 import { FullNavBar } from "../../navbar/fullnavbar";
 import { useRouter } from "next/navigation"
-import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts';
+import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import ApexCharts from 'apexcharts'
+import Chart from "react-apexcharts";
+import ChartComponent from "@/components/mine/chartElement";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 
-const data = [
-    {
-        "name": "Page A",
-        "uv": 4000,
-        "pv": 2400,
-        "amt": 2400
-    },
-    {
-        "name": "Page B",
-        "uv": 3000,
-        "pv": 1398,
-        "amt": 2210
-    },
-    {
-        "name": "Page C",
-        "uv": 2000,
-        "pv": 9800,
-        "amt": 2290
-    },
-    {
-        "name": "Page D",
-        "uv": 2780,
-        "pv": 3908,
-        "amt": 2000
-    },
-    {
-        "name": "Page E",
-        "uv": 1890,
-        "pv": 4800,
-        "amt": 2181
-    },
-    {
-        "name": "Page F",
-        "uv": 2390,
-        "pv": 3800,
-        "amt": 2500
-    },
-    {
-        "name": "Page G",
-        "uv": 3490,
-        "pv": 4300,
-        "amt": 2100
+import { format } from "date-fns"
+import { Calendar as CalendarIcon } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+
+export default function Charts({ params }: { params: { instrument: string } }) {
+    const { instrument } = params;
+    const [series, setSeries] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [endDate, setEndDate] = React.useState<Date>()
+    const [startDate, setStartDate] = React.useState<Date>()
+
+    const postData = {
+        collection_name: "CoreData",
+        fields: { "symbol": instrument[0], "interval": "1month" },
+    };
+
+
+    const options = {
+        chart: {
+            type: 'candlestick',
+            height: 1000
+        },
+
+        xaxis: {
+            type: 'datetime'
+        },
+        yaxis: {
+            tooltip: {
+                enabled: true
+            }
+        },
+        responsive: [{
+            breakpoint: undefined,
+            options: {},
+        }]
     }
-]
-export default function Chart({ params }: { params: { instrument: string } }) {
+
+    useEffect(() => {
+        // Realiza la solicitud POST cuando el componente se monta
+        axios.post('http://127.0.0.1:3002/mongo/find_by_multiple_fields', postData)
+            .then(response => {
+                // Verifica si la respuesta contiene la clave "documents"
+                if (response.data && response.data.documents) {
+                    const documents = response.data.documents;
+                    // Verifica si la clave "data" existe y si es un arreglo
+                    if (documents.data && Array.isArray(documents.data)) {
+                        // Imprime el primer elemento de "data"
+                        setSeries(documents.data);
+                        setLoading(false);
+                        setError(false);
+
+                    }
+                } else {
+                    console.log("La respuesta no contiene la clave 'documents'.");
+                    setLoading(false);
+                    setError(true);
+                }
+            })
+            .catch(error => {
+                // Maneja los errores aquí
+                setLoading(false);
+                setError(true);
+                console.error("Error:", error);
+            });
+    }, []);
+
     return (
         <>
             <div>
-                <h1>Asset Name: {params.instrument[0].replace("%20", " ") || "Unkwon"}</h1>
-                <h1>Country Name: {params.instrument[1].replace("%20", " ") || "Unkwon"}</h1>
-                <div>
+                <div className="p-8">
+                    {loading ? (
+                        <p>Loading...</p>
+                    ) : error ? (
+                        <p>Error loading data</p>
+                    ) : (
+                        <div>
+                            <div className="hidden space-y-6 pb-16 md:block">
+                                <div className="space-y-0.5">
+                                    <h2 className="text-xl font-bold tracking-tight">{instrument[0]} Chart</h2>
 
 
+                                    <div className="pt-3 flex  space-x-2">
+                                        <Select>
+                                            <SelectTrigger className="w-[180px]">
+                                                <SelectValue placeholder="Timestamp" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="1month">1 month</SelectItem>
+                                                <SelectItem value="1week">1 week</SelectItem>
+                                                <SelectItem value="1day">1 day</SelectItem>
+                                                <SelectItem value="4hours">4 hours</SelectItem>
+                                                <SelectItem value="2hours">2 hours</SelectItem>
+                                                <SelectItem value="1hour">1 hour</SelectItem>
+                                                <SelectItem value="45min">45 minutes</SelectItem>
+                                                <SelectItem value="30min">30 minutes</SelectItem>
+                                                <SelectItem value="15min">15 minutes</SelectItem>
+                                                <SelectItem value="5min">5 minutes</SelectItem>
+                                                <SelectItem value="1min">1 minute</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-[280px] justify-start text-left font-normal",
+                                                        !startDate && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {startDate ? format(startDate, "PPP") : <span>Pick start date</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={startDate}
+                                                    onSelect={setStartDate}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-[280px] justify-start text-left font-normal",
+                                                        !endDate && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {endDate ? format(endDate, "PPP") : <span>Pick end date</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={endDate}
+                                                    onSelect={setEndDate}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
 
-                    <AreaChart width={730} height={250} data={data}
-                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                        <defs>
-                            <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                                <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                            </linearGradient>
-                            <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-                                <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <Tooltip />
-                        <Area type="monotone" dataKey="uv" stroke="#8884d8" fillOpacity={1} fill="url(#colorUv)" />
-                        <Area type="monotone" dataKey="pv" stroke="#82ca9d" fillOpacity={1} fill="url(#colorPv)" />
-                    </AreaChart>
+                                        </Popover>
+
+                                    </div>
+                                </div>
+
+                                <ChartComponent options={options} data={series} />
+
+                            </div>
+
+
+                        </div>
+
+                    )}
                 </div>
             </div>
         </>

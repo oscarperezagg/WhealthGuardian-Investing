@@ -402,15 +402,7 @@ export default function markets() {
 
                     </TabsContent>
                 </Tabs>
-                <div className="md:hidden">
-                    <Alert >
-                        <ExclamationTriangleIcon className="h-4 w-4" />
-                        <AlertTitle>Attention!</AlertTitle>
-                        <AlertDescription>
-                            This website is not optimized for mobile devices. Please use a desktop browser to access all the features.
-                        </AlertDescription>
-                    </Alert>
-                </div>
+                
 
 
             </div>
